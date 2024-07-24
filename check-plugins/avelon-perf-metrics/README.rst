@@ -70,13 +70,6 @@ Output:
 
 .. code-block:: text
 
-    There are CRITICAL alarm ticket(s).
-
-    ID       ! Timestamp                        ! Message                                                     ! State
-    ---------+----------------------------------+-------------------------------------------------------------+-------------------------
-    13927572 ! 2024-06-18 19:46:56 (5D 14h ago) ! Abschaltend: 6102/5/22: Durchfluss Notkühlung FQ201 Störung ! OPEN [CRITICAL]
-    13927573 ! 2024-06-18 19:46:56 (5D 14h ago) ! Störung: 6102/5/0: Anlage Zustand Störung                   ! ACKNOWLEDGED [CRITICAL]
-
     Sytem Name                      ! ID      ! Label                                     ! Value        
     --------------------------------+---------+-------------------------------------------+--------------
     HG-17-1.OG-0.253-SO01-DP101-XI1 ! 1389384 ! Differenzdruck Kaltwasser Vorlauf DP101   ! 0.4 bar
@@ -124,7 +117,7 @@ Performance data is collected from all data points. The name and type are genera
     
     Name,                               Type,                   Description                                           
     <data_point systemName>,            <data_point value>,     This is a data point from the Avelon Cloud System.
-    ...                                 ...                     ...
+    ...,                                ...,                    ...,
 
 
 Credits, License
