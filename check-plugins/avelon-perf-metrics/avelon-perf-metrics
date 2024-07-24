@@ -12,9 +12,7 @@
 """
 
 import argparse  # pylint: disable=C0413
-import datetime # pylint: disable=C0413
 import json  # pylint: disable=C0413
-import re  # pylint: disable=C0413
 import sys  # pylint: disable=C0413
 
 import lib.args  # pylint: disable=C0413
@@ -30,9 +28,8 @@ from lib.globals import (STATE_OK, STATE_UNKNOWN,  # pylint: disable=C0413
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
 __version__ = '2024062401'
 
-DESCRIPTION = """The current tickets (alerts) of your Avelon Cloud are being reviewed, 
-                 and depending on their status, critical alerts or warnings can be triggered. 
-                 You need a license to access the public API of the Avelon Cloud."""
+DESCRIPTION = """Retrieve the performance data of the various data points 
+                 of your Avelon Cloud and present them in a readable format."""
 
 DEFAULT_INSECURE  = False
 DEFAULT_NO_PROXY = False
@@ -135,7 +132,8 @@ def main():
 
     # init some vars
     msg = ''
-    data_points = []
+    data_point_table = []
+    perfdata = ''
 
     if args.TEST is None:
         # get token
@@ -150,7 +148,7 @@ def main():
         )
         if not success:
             lib.base.cu(token)
-
+            
         # get data points
         success, data_points = lib.avelon.get_data_points(
             access_token=token['access_token'],
@@ -158,6 +156,7 @@ def main():
             no_proxy=args.NO_PROXY,
             timeout=args.TIMEOUT,
         )
+
         if not success:
             lib.base.cu(data_points)
     else:
@@ -165,36 +164,44 @@ def main():
         stdout, stderr, retc = lib.test.test(args.TEST)
         data_points = json.loads(stdout)
 
+    for data_point in data_points:
+        if not isinstance(data_point['value'], str):
+            data_point_table.append({
+                'id': data_point['id'],
+                'systemName': data_point['systemName'],
+                'label': data_point['label'],
+                'value': str(data_point['value']) + ' ' + data_point['unitSymbol'],
+            })
+
+            # perfdata
+            try:
+                perfdata += lib.base.get_perfdata(data_point['systemName'], data_point['value'], data_point['unitSymbol'])
+            except:
+                pass
 
     # build the message
-    if data_points:
+    if data_point_table:
         keys = [
-            'id',
             'systemName',
+            'id',
             'label',
-            'unitSymbol',
-            'dataType',
-            'time',
             'value',
         ]
         headers = [
-            'ID',
             'Sytem Name',
+            'ID',
             'Label',
-            'Unite Symbol',
-            'Daten Typ'
-            'Timestamp',
             'Value',
         ]
 
         msg += lib.base.get_table(
-                sorted(data_points, key=lambda d: d['id']),
+                sorted(data_point_table, key=lambda d: d['systemName']),
                 keys,
                 header=headers,
             )
-
+        
     # over and out
-    lib.base.oao(msg, always_ok=args.ALWAYS_OK)
+    lib.base.oao(msg, 0, perfdata, always_ok=args.ALWAYS_OK)
 
 
 if __name__ == '__main__':
